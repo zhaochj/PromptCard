@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>本地提示词管理系统</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #2c3e50;
+    }
+    
+    .search-container {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+    
+    .search-input {
+      flex: 1;
+      min-width: 200px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    .tag-filter {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      min-width: 150px;
+    }
+    
+    .add-prompt {
+      background-color: #3498db;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s;
+    }
+    
+    .add-prompt:hover {
+      background-color: #2980b9;
+    }
+    
+    .prompt-form {
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+      display: none;
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+    
+    textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      resize: vertical;
+      min-height: 100px;
+    }
+    
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+    
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s;
+    }
+    
+    .btn-primary {
+      background-color: #27ae60;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: #229954;
+    }
+    
+    .btn-secondary {
+      background-color: #95a5a6;
+      color: white;
+    }
+    
+    .btn-secondary:hover {
+      background-color: #7f8c8d;
+    }
+    
+    .prompts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    
+    .prompt-card {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 15px;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .prompt-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .prompt-content {
+      margin-bottom: 15px;
+      white-space: pre-wrap;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    
+    .prompt-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 15px;
+    }
+    
+    .tag {
+      background-color: #ecf0f1;
+      color: #34495e;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+    }
+    
+    .card-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+    
+    .copy-btn {
+      background-color: #f39c12;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background-color 0.3s;
+    }
+    
+    .copy-btn:hover {
+      background-color: #e67e22;
+    }
+    
+    .copy-btn.copied {
+      background-color: #27ae60;
+    }
+    
+    .delete-btn {
+      background-color: #e74c3c;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background-color 0.3s;
+    }
+    
+    .delete-btn:hover {
+      background-color: #c0392b;
+    }
+    
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 60px 20px;
+      color: #7f8c8d;
+    }
+    
+    @media (max-width: 768px) {
+      .search-container {
+        flex-direction: column;
+      }
+      
+      .search-input,
+      .tag-filter {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>本地提示词管理系统</h1>
+    
+    <div class="search-container">
+      <input type="text" class="search-input" placeholder="搜索提示词..." id="searchInput">
+      <select class="tag-filter" id="tagFilter">
+        <option value="">所有标签</option>
+      </select>
+      <button class="add-prompt" id="addPromptBtn">添加提示词</button>
+    </div>
+    
+    <div class="prompt-form" id="promptForm">
+      <h3>添加新提示词</h3>
+      <div class="form-group">
+        <label for="promptContent">提示词内容</label>
+        <textarea id="promptContent" placeholder="请输入提示词..."></textarea>
+      </div>
+      <div class="form-group">
+        <label for="promptTags">标签（用逗号分隔）</label>
+        <input type="text" id="promptTags" placeholder="例如：AI, 写作, 创意">
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-secondary" id="cancelBtn">取消</button>
+        <button class="btn btn-primary" id="saveBtn">保存</button>
+      </div>
+    </div>
+    
+    <div class="prompts-grid" id="promptsGrid">
+      <!-- 提示词卡片将通过JavaScript动态生成 -->
+    </div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const promptsGrid = document.getElementById('promptsGrid');
+      const searchInput = document.getElementById('searchInput');
+      const tagFilter = document.getElementById('tagFilter');
+      const addPromptBtn = document.getElementById('addPromptBtn');
+      const promptForm = document.getElementById('promptForm');
+      const cancelBtn = document.getElementById('cancelBtn');
+      const saveBtn = document.getElementById('saveBtn');
+      const promptContent = document.getElementById('promptContent');
+      const promptTags = document.getElementById('promptTags');
+      
+      // 加载提示词
+      function loadPrompts() {
+        const search = searchInput.value;
+        const tag = tagFilter.value;
+        
+        let url = '/api/prompts';
+        const params = [];
+        
+        if (search) params.push(`search=${encodeURIComponent(search)}`);
+        if (tag) params.push(`tag=${encodeURIComponent(tag)}`);
+        
+        if (params.length > 0) {
+          url += '?' + params.join('&');
+        }
+        
+        fetch(url)
+          .then(response => response.json())
+          .then(data => {
+            renderPrompts(data);
+          })
+          .catch(error => {
+            console.error('加载提示词失败:', error);
+          });
+      }
+      
+      // 渲染提示词卡片
+      function renderPrompts(prompts) {
+        promptsGrid.innerHTML = '';
+        
+        if (prompts.length === 0) {
+          const emptyState = document.createElement('div');
+          emptyState.className = 'empty-state';
+          emptyState.textContent = '暂无提示词，点击"添加提示词"按钮创建第一个提示词';
+          promptsGrid.appendChild(emptyState);
+          return;
+        }
+        
+        prompts.forEach(prompt => {
+          const card = document.createElement('div');
+          card.className = 'prompt-card';
+          
+          const content = document.createElement('div');
+          content.className = 'prompt-content';
+          content.textContent = prompt.content;
+          
+          const tagsContainer = document.createElement('div');
+          tagsContainer.className = 'prompt-tags';
+          
+          if (prompt.tags) {
+            prompt.tags.split(',').forEach(tag => {
+              if (tag.trim()) {
+                const tagElement = document.createElement('span');
+                tagElement.className = 'tag';
+                tagElement.textContent = tag.trim();
+                tagsContainer.appendChild(tagElement);
+              }
+            });
+          }
+          
+          const actions = document.createElement('div');
+          actions.className = 'card-actions';
+          
+          const copyBtn = document.createElement('button');
+          copyBtn.className = 'copy-btn';
+          copyBtn.textContent = '复制';
+          copyBtn.addEventListener('click', function() {
+            navigator.clipboard.writeText(prompt.content)
+              .then(() => {
+                copyBtn.textContent = '已复制!';
+                copyBtn.classList.add('copied');
+                setTimeout(() => {
+                  copyBtn.textContent = '复制';
+                  copyBtn.classList.remove('copied');
+                }, 2000);
+              })
+              .catch(err => {
+                console.error('复制失败:', err);
+              });
+          });
+          
+          const deleteBtn = document.createElement('button');
+          deleteBtn.className = 'delete-btn';
+          deleteBtn.textContent = '删除';
+          deleteBtn.addEventListener('click', function() {
+            if (confirm('确定要删除这个提示词吗？')) {
+              deletePrompt(prompt.id);
+            }
+          });
+          
+          actions.appendChild(copyBtn);
+          actions.appendChild(deleteBtn);
+          card.appendChild(content);
+          card.appendChild(tagsContainer);
+          card.appendChild(actions);
+          promptsGrid.appendChild(card);
+        });
+      }
+      
+      // 加载标签
+      function loadTags() {
+        fetch('/api/tags')
+          .then(response => response.json())
+          .then(tags => {
+            tagFilter.innerHTML = '<option value="">所有标签</option>';
+            tags.forEach(tag => {
+              const option = document.createElement('option');
+              option.value = tag;
+              option.textContent = tag;
+              tagFilter.appendChild(option);
+            });
+          })
+          .catch(error => {
+            console.error('加载标签失败:', error);
+          });
+      }
+      
+      // 保存提示词
+      function savePrompt() {
+        const content = promptContent.value.trim();
+        const tags = promptTags.value.trim();
+        
+        if (!content) {
+          alert('提示词内容不能为空');
+          return;
+        }
+        
+        fetch('/api/prompts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ content, tags })
+        })
+          .then(response => response.json())
+          .then(() => {
+            // 重置表单
+            promptContent.value = '';
+            promptTags.value = '';
+            promptForm.style.display = 'none';
+            
+            // 重新加载数据
+            loadPrompts();
+            loadTags();
+          })
+          .catch(error => {
+            console.error('保存提示词失败:', error);
+          });
+      }
+      
+      // 删除提示词
+      function deletePrompt(id) {
+        fetch(`/api/prompts/${id}`, {
+          method: 'DELETE'
+        })
+          .then(response => response.json())
+          .then(() => {
+            // 重新加载数据
+            loadPrompts();
+            loadTags();
+          })
+          .catch(error => {
+            console.error('删除提示词失败:', error);
+          });
+      }
+      
+      // 事件监听
+      searchInput.addEventListener('input', loadPrompts);
+      tagFilter.addEventListener('change', loadPrompts);
+      
+      addPromptBtn.addEventListener('click', function() {
+        promptForm.style.display = 'block';
+      });
+      
+      cancelBtn.addEventListener('click', function() {
+        promptContent.value = '';
+        promptTags.value = '';
+        promptForm.style.display = 'none';
+      });
+      
+      saveBtn.addEventListener('click', savePrompt);
+      
+      // 初始化加载
+      loadPrompts();
+      loadTags();
+    });
+  </script>
+</body>
+</html>
