@@ -1,12 +1,14 @@
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+require('dotenv').config();
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 // 连接SQLite数据库
-const db = new sqlite3.Database('./prompts.db');
+const dbPath = process.env.DB_PATH || './prompts.db';
+const db = new sqlite3.Database(dbPath);
 
 // 初始化数据库
 db.serialize(() => {

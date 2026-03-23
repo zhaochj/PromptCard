@@ -160,9 +160,16 @@ pm2 start server.js
 可以创建 `.env` 文件来配置环境变量：
 
 ```
+# 服务器配置
 PORT=3000
 NODE_ENV=production
+
+# 数据库配置
+DB_PATH=./prompts.db
 ```
+
+- `PORT`：服务器端口
+- `DB_PATH`：数据库文件路径，默认值为 `./prompts.db`
 
 ### 3. 数据库备份
 
