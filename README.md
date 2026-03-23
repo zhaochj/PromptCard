@@ -17,6 +17,13 @@ PromptCard是一个基于Node.js和SQLite的本地应用，用于管理和搜索
 - npm 6.0 或更高版本
 - 操作系统：Windows、macOS、Linux
 
+## 项目依赖
+
+- express：Web框架
+- sqlite3：SQLite数据库驱动
+- dotenv：环境变量加载
+- nodemon：开发环境热重载（开发依赖）
+
 ## 安装步骤
 
 ### 1. 克隆项目
