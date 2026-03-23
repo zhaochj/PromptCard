@@ -1,8 +1,8 @@
-# 本地提示词管理系统
+# PromptCard
 
 ## 项目概述
 
-本地提示词管理系统是一个基于Node.js和SQLite的本地应用，用于管理和搜索提示词。系统具有以下功能：
+PromptCard是一个基于Node.js和SQLite的本地应用，用于管理和搜索提示词。系统具有以下功能：
 
 - 瀑布流卡片布局展示提示词
 - 一键复制提示词功能
@@ -24,7 +24,7 @@
 ```bash
 # 克隆项目到本地
 git clone <项目仓库地址>
-cd prompt-system
+cd PromptCard
 ```
 
 ### 2. 安装依赖
@@ -49,7 +49,7 @@ npm run dev
 ## 项目结构
 
 ```
-prompt-system/
+PromptCard/
 ├── public/              # 前端静态文件
 │   └── index.html       # 前端页面
 ├── server.js            # 后端服务器
