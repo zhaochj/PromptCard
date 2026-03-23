@@ -30,35 +30,57 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // API接口
 
-// 获取所有提示词
+// 获取提示词列表（支持分页）
 app.get('/api/prompts', (req, res) => {
-  const { search, tag } = req.query;
-  let query = 'SELECT * FROM prompts';
+  const { search, tag, page = 1, limit = 20 } = req.query;
+  const offset = (page - 1) * limit;
+  
+  let countQuery = 'SELECT COUNT(*) as total FROM prompts';
+  let dataQuery = 'SELECT * FROM prompts';
   let params = [];
   
   if (search || tag) {
-    query += ' WHERE';
+    const whereClause = [];
     if (search) {
-      query += ' content LIKE ?';
+      whereClause.push('content LIKE ?');
       params.push(`%${search}%`);
     }
-    if (search && tag) {
-      query += ' AND';
-    }
     if (tag) {
-      query += ' tags LIKE ?';
+      whereClause.push('tags LIKE ?');
       params.push(`%${tag}%`);
     }
+    const whereString = ' WHERE ' + whereClause.join(' AND ');
+    countQuery += whereString;
+    dataQuery += whereString;
   }
   
-  query += ' ORDER BY created_at DESC';
+  dataQuery += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
+  params.push(parseInt(limit), parseInt(offset));
   
-  db.all(query, params, (err, rows) => {
+  // 先获取总数
+  db.get(countQuery, params.slice(0, -2), (err, countResult) => {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
     }
-    res.json(rows);
+    
+    // 再获取数据
+    db.all(dataQuery, params, (err, rows) => {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      
+      res.json({
+        data: rows,
+        pagination: {
+          total: countResult.total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          totalPages: Math.ceil(countResult.total / limit)
+        }
+      });
+    });
   });
 });
 

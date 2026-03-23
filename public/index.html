@@ -227,6 +227,45 @@
       color: #7f8c8d;
     }
     
+    .pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 30px;
+      gap: 5px;
+    }
+    
+    .pagination button {
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      background-color: white;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+    
+    .pagination button:hover:not(:disabled) {
+      background-color: #f5f5f5;
+    }
+    
+    .pagination button.active {
+      background-color: #3498db;
+      color: white;
+      border-color: #3498db;
+    }
+    
+    .pagination button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .pagination-info {
+      margin: 0 10px;
+      font-size: 14px;
+      color: #666;
+    }
+    
     @media (max-width: 768px) {
       .search-container {
         flex-direction: column;
@@ -235,6 +274,10 @@
       .search-input,
       .tag-filter {
         width: 100%;
+      }
+      
+      .pagination {
+        flex-wrap: wrap;
       }
     }
   </style>
@@ -270,6 +313,10 @@
     <div class="prompts-grid" id="promptsGrid">
       <!-- 提示词卡片将通过JavaScript动态生成 -->
     </div>
+    
+    <div class="pagination" id="pagination">
+      <!-- 分页控件将通过JavaScript动态生成 -->
+    </div>
   </div>
   
   <script>
@@ -283,6 +330,10 @@
       const saveBtn = document.getElementById('saveBtn');
       const promptContent = document.getElementById('promptContent');
       const promptTags = document.getElementById('promptTags');
+      const pagination = document.getElementById('pagination');
+      
+      let currentPage = 1;
+      const pageSize = 20;
       
       // 加载提示词
       function loadPrompts() {
@@ -294,6 +345,8 @@
         
         if (search) params.push(`search=${encodeURIComponent(search)}`);
         if (tag) params.push(`tag=${encodeURIComponent(tag)}`);
+        params.push(`page=${currentPage}`);
+        params.push(`limit=${pageSize}`);
         
         if (params.length > 0) {
           url += '?' + params.join('&');
@@ -302,7 +355,8 @@
         fetch(url)
           .then(response => response.json())
           .then(data => {
-            renderPrompts(data);
+            renderPrompts(data.data);
+            renderPagination(data.pagination);
           })
           .catch(error => {
             console.error('加载提示词失败:', error);
@@ -382,6 +436,43 @@
         });
       }
       
+      // 渲染分页控件
+      function renderPagination(paginationData) {
+        pagination.innerHTML = '';
+        
+        const { total, page, limit, totalPages } = paginationData;
+        
+        // 上一页按钮
+        const prevBtn = document.createElement('button');
+        prevBtn.textContent = '上一页';
+        prevBtn.disabled = page === 1;
+        prevBtn.addEventListener('click', function() {
+          if (page > 1) {
+            currentPage = page - 1;
+            loadPrompts();
+          }
+        });
+        pagination.appendChild(prevBtn);
+        
+        // 页码信息
+        const info = document.createElement('span');
+        info.className = 'pagination-info';
+        info.textContent = `第 ${page} 页，共 ${totalPages} 页，总计 ${total} 条`;
+        pagination.appendChild(info);
+        
+        // 下一页按钮
+        const nextBtn = document.createElement('button');
+        nextBtn.textContent = '下一页';
+        nextBtn.disabled = page === totalPages || totalPages === 0;
+        nextBtn.addEventListener('click', function() {
+          if (page < totalPages) {
+            currentPage = page + 1;
+            loadPrompts();
+          }
+        });
+        pagination.appendChild(nextBtn);
+      }
+      
       // 加载标签
       function loadTags() {
         fetch('/api/tags')
@@ -424,7 +515,7 @@
             promptTags.value = '';
             promptForm.style.display = 'none';
             
-            // 重新加载数据
+            // 重新加载数据（保持当前页码）
             loadPrompts();
             loadTags();
           })
@@ -440,7 +531,7 @@
         })
           .then(response => response.json())
           .then(() => {
-            // 重新加载数据
+            // 重新加载数据（保持当前页码）
             loadPrompts();
             loadTags();
           })
@@ -450,8 +541,15 @@
       }
       
       // 事件监听
-      searchInput.addEventListener('input', loadPrompts);
-      tagFilter.addEventListener('change', loadPrompts);
+      searchInput.addEventListener('input', function() {
+        currentPage = 1;
+        loadPrompts();
+      });
+      
+      tagFilter.addEventListener('change', function() {
+        currentPage = 1;
+        loadPrompts();
+      });
       
       addPromptBtn.addEventListener('click', function() {
         promptForm.style.display = 'block';
