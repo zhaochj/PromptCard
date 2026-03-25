@@ -335,6 +335,15 @@
       let currentPage = 1;
       const pageSize = 20;
       
+      // 防抖函数
+      function debounce(func, wait) {
+        let timeout;
+        return function() {
+          clearTimeout(timeout);
+          timeout = setTimeout(() => func.apply(this, arguments), wait);
+        };
+      }
+      
       // 加载提示词
       function loadPrompts() {
         const search = searchInput.value;
@@ -360,6 +369,15 @@
           })
           .catch(error => {
             console.error('加载提示词失败:', error);
+            alert('加载提示词失败，请稍后重试');
+            // 显示空状态
+            promptsGrid.innerHTML = '';
+            const emptyState = document.createElement('div');
+            emptyState.className = 'empty-state';
+            emptyState.textContent = '加载失败，请稍后重试';
+            promptsGrid.appendChild(emptyState);
+            // 清空分页
+            pagination.innerHTML = '';
           });
       }
       
@@ -488,6 +506,7 @@
           })
           .catch(error => {
             console.error('加载标签失败:', error);
+            // 保持原有标签不变，不显示错误提示
           });
       }
       
@@ -515,12 +534,14 @@
             promptTags.value = '';
             promptForm.style.display = 'none';
             
-            // 重新加载数据（保持当前页码）
+            // 跳回第一页，确保用户能看到刚添加的内容
+            currentPage = 1;
             loadPrompts();
             loadTags();
           })
           .catch(error => {
             console.error('保存提示词失败:', error);
+            alert('保存失败，请稍后重试');
           });
       }
       
@@ -537,14 +558,15 @@
           })
           .catch(error => {
             console.error('删除提示词失败:', error);
+            alert('删除失败，请稍后重试');
           });
       }
       
       // 事件监听
-      searchInput.addEventListener('input', function() {
+      searchInput.addEventListener('input', debounce(function() {
         currentPage = 1;
         loadPrompts();
-      });
+      }, 300));
       
       tagFilter.addEventListener('change', function() {
         currentPage = 1;
