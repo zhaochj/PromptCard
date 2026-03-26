@@ -163,6 +163,43 @@
       white-space: pre-wrap;
       font-size: 14px;
       line-height: 1.5;
+      max-height: 120px;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .prompt-content::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 40px;
+      background: linear-gradient(to bottom, transparent, white);
+      pointer-events: none;
+    }
+    
+    .prompt-content.expanded {
+      max-height: none;
+    }
+    
+    .prompt-content.expanded::after {
+      display: none;
+    }
+    
+    .expand-btn {
+      background: none;
+      border: none;
+      color: #3498db;
+      cursor: pointer;
+      font-size: 12px;
+      padding: 0;
+      margin-top: 5px;
+      text-align: left;
+    }
+    
+    .expand-btn:hover {
+      text-decoration: underline;
     }
     
     .prompt-tags {
@@ -428,6 +465,24 @@
           const content = document.createElement('div');
           content.className = 'prompt-content';
           content.textContent = prompt.content;
+          
+          // 检查内容长度，添加展开/收起按钮
+          const contentHeight = content.scrollHeight;
+          if (contentHeight > 120) {
+            const expandBtn = document.createElement('button');
+            expandBtn.className = 'expand-btn';
+            expandBtn.textContent = '展开';
+            expandBtn.addEventListener('click', function() {
+              if (content.classList.contains('expanded')) {
+                content.classList.remove('expanded');
+                expandBtn.textContent = '展开';
+              } else {
+                content.classList.add('expanded');
+                expandBtn.textContent = '收起';
+              }
+            });
+            card.appendChild(expandBtn);
+          }
           
           const tagsContainer = document.createElement('div');
           tagsContainer.className = 'prompt-tags';
