@@ -134,6 +134,29 @@ app.get('/api/tags', (req, res) => {
   });
 });
 
+// 更新提示词
+app.put('/api/prompts/:id', (req, res) => {
+  const { id } = req.params;
+  const { content, tags } = req.body;
+  
+  if (!content) {
+    res.status(400).json({ error: '提示词内容不能为空' });
+    return;
+  }
+  
+  db.run(
+    'UPDATE prompts SET content = ?, tags = ? WHERE id = ?',
+    [content, tags, id],
+    function(err) {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      res.json({ id, content, tags });
+    }
+  );
+});
+
 // 删除提示词
 app.delete('/api/prompts/:id', (req, res) => {
   const { id } = req.params;

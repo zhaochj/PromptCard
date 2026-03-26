@@ -220,6 +220,21 @@
       background-color: #c0392b;
     }
     
+    .edit-btn {
+      background-color: #9b59b6;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: background-color 0.3s;
+    }
+    
+    .edit-btn:hover {
+      background-color: #8e44ad;
+    }
+    
     .empty-state {
       grid-column: 1 / -1;
       text-align: center;
@@ -334,6 +349,7 @@
       
       let currentPage = 1;
       const pageSize = 20;
+      let editingPromptId = null;
       
       // 防抖函数
       function debounce(func, wait) {
@@ -342,6 +358,18 @@
           clearTimeout(timeout);
           timeout = setTimeout(() => func.apply(this, arguments), wait);
         };
+      }
+      
+      // 打开编辑表单
+      function openEditForm(prompt) {
+        editingPromptId = prompt.id;
+        promptContent.value = prompt.content;
+        promptTags.value = prompt.tags || '';
+        promptForm.style.display = 'block';
+        // 修改表单标题
+        promptForm.querySelector('h3').textContent = '编辑提示词';
+        // 修改保存按钮文本
+        saveBtn.textContent = '更新';
       }
       
       // 加载提示词
@@ -445,7 +473,15 @@
             }
           });
           
+          const editBtn = document.createElement('button');
+          editBtn.className = 'edit-btn';
+          editBtn.textContent = '编辑';
+          editBtn.addEventListener('click', function() {
+            openEditForm(prompt);
+          });
+          
           actions.appendChild(copyBtn);
+          actions.appendChild(editBtn);
           actions.appendChild(deleteBtn);
           card.appendChild(content);
           card.appendChild(tagsContainer);
@@ -520,8 +556,11 @@
           return;
         }
         
-        fetch('/api/prompts', {
-          method: 'POST',
+        const url = editingPromptId ? `/api/prompts/${editingPromptId}` : '/api/prompts';
+        const method = editingPromptId ? 'PUT' : 'POST';
+        
+        fetch(url, {
+          method: method,
           headers: {
             'Content-Type': 'application/json'
           },
@@ -533,6 +572,10 @@
             promptContent.value = '';
             promptTags.value = '';
             promptForm.style.display = 'none';
+            editingPromptId = null;
+            // 恢复表单标题和按钮文本
+            promptForm.querySelector('h3').textContent = '添加新提示词';
+            saveBtn.textContent = '保存';
             
             // 跳回第一页，确保用户能看到刚添加的内容
             currentPage = 1;
@@ -581,6 +624,10 @@
         promptContent.value = '';
         promptTags.value = '';
         promptForm.style.display = 'none';
+        editingPromptId = null;
+        // 恢复表单标题和按钮文本
+        promptForm.querySelector('h3').textContent = '添加新提示词';
+        saveBtn.textContent = '保存';
       });
       
       saveBtn.addEventListener('click', savePrompt);
